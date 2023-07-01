@@ -305,8 +305,6 @@ function getDate() {
             if (document.getElementById("yCoord").value == "" && typeof localStorage.getItem("yCoordInput") == "number") {
                 document.getElementById("yCoord").value = parseFloat(localStorage.getItem("yCoordInput"));
                 doMath();
-            } else if (isNaN(localStorage.getItem("yCoordInput")) == true) {
-                console.log("hello");
             }
             timeCreated.innerHTML = localStorage.getItem("dateGapCreated");
             if (timeCreated.innerHTML == "") {
