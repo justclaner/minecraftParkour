@@ -65,11 +65,12 @@
     </style>
 </head>
 <body onload="loadFunction()">
-    <h1>Minecraft 1.8.9 Small Gap Finder</h1>
+    <h1>Minecraft Small Gap Finder</h1>
     <strong>Intro</strong>
     <p style="text-indent: 45px;">
-    In Minecraft 1.8.9, the player's position on the following tick is calculated in the sequence Y-X-Z as follows, stopping when it 
-    detects a block collision for each respective dimension/direction. After that, all coordinates are updated simultaneously. A player 
+    In Minecraft, the player's position on the following tick is calculated first in the Y direction and then in X/Z as follows, 
+    stopping when it detects a block collision for each respective dimension/direction. Whether X or Z is calculated before the other depends on
+    the version. After that, all coordinates are updated simultaneously. A player 
     will land inside a gap only if their y 
     coordinate on the tick before landing (before detecting a vertical block collision) is such that the player model is able to translate 
     into the gap without intersecting any block. This is 
@@ -78,12 +79,12 @@
     the player model to translate into without 
     intersection), then the player's x/z coordinates will only be updated such that they will be touching the wall. Sadly, this is not
     enough for the player to actually land inside the gap, and they will simply fall past. The positional coordinates on the next tick 
-    are recalculated based on the velocities of the player in each dimension, and the same process of Y-X-Z 
+    are recalculated based on the velocities of the player in each dimension, and the same process of Y first and X/Z next
     repeats. Unless a player's y coordinate is within a very specific range on the tick(s) before landing, they will not be able to land 
     inside the gap.
     </p>
     <strong>This tool allows you to find small gaps that the player can land in after jumping, blipping, walking off, and etc.</strong>
-    <p style="font-size:16px">*"Small" gaps are those that are less than 2b (two blocks).*</p>
+    <p style="font-size:16px">*"Small" gaps are those that are less than or equal to 2b (two blocks).*</p>
     <br>
     <p class="boldText">How-To Tutorial:</p>
     <ol>
@@ -94,11 +95,15 @@
     </ol>
     <br><br><br>
     <strong>The Tool</strong> <br> <br>
+    <label for="" class="boldText">Number of Ticks Calculated</label>
+    <input type="number" name="" id="tickCount">
+    <p>The default is set to 160. The maximum amount is 1000 (which is most certainly enough). <b>Reminder: There are 20 ticks in a second.</b></p>
+    <br>
     <label class="boldText">Peak Y Coordinate:</label> <br>
     <input type="number" id="yCoord">
     <button onclick="beforeDoingMath()">Enter</button>
-    <br> <br>
-    <button onclick="scrollDown()">Go to bottom</button>    
+    <br><br>
+    <button onclick="scrollDown()">Go to Bottom</button>
     <p id="timeCreated">Time Created: </p>
     <table id="tableOfAll">
         <tr>
@@ -117,24 +122,26 @@
     <a href="https://www.mcpk.wiki/wiki/Vertical_Movement_Formulas" target="_blank">The Minecraft Parkour Wiki</a> <br> <br>
     <p>My Discord: justclaner</p>
     <script>
+        var tickCount = document.getElementById("tickCount");
+        tickCount.value = 160;
         document.addEventListener("keydown", enterFunction);
         function enterFunction(keyPress) {
             if (keyPress.key == "Enter") {
                 beforeDoingMath();
+                removeTableData();
             }
         }
 
         function beforeDoingMath() {
             if (document.getElementById("yCoord").value == "") {
                 alert("You must enter a Y Coordinate value!");
-            } else if (document.getElementById("yCoord").value >= 257.25 && document.getElementById("yCoord").value <= 262.5){
-                alert("You can not possibly fall from this height unless you have been launched vertically upward by a slime block!")
-            } else if (document.getElementById("yCoord").value > 262.5){
-                alert("Impossible!")  
-            } else if(document.getElementById("yCoord").value == parseFloat(localStorage.getItem("yCoordInput"))) {
-                alert("You already entered this!")
+            } else if (tickCount.value < 0) {
+                alert("Number of ticks can not be negative!")
+            } else if (tickCount.value > 1000) {
+                alert("Number of ticks can not be more than 1000!")
             } else {
                 doMath();
+                removeTableData();
                 getDate();
             }
         }
@@ -156,7 +163,7 @@
         initialY = parseFloat(document.getElementById("yCoord").value);
         y = parseFloat(document.getElementById("yCoord").value);
 
-        for (i = 1; i< 121; i++) {
+        for (i = 1; i<=tickCount.value; i++) {
             if (i == 1) {
                 vY = -0.08*0.98;
             } else if (i > 1) {
@@ -168,43 +175,86 @@
             document.getElementById("Row " + i.toString() + ", Collumn 3").innerHTML = y.toFixed(4);
             document.getElementById("Row " + i.toString() + ", Collumn 4").innerHTML = yRoundedToPixel;
             //comment about gap
-            if (y < 0.125) {
-                document.getElementById("Row " + i.toString() + ", Collumn 5").innerHTML = "Void!";
-            } else if (yRoundedToPixel % 1 == 0 && (y-yRoundedToPixel) < 0.0125) {
-                document.getElementById("Row " + i.toString() + ", Collumn 5").innerHTML = "Possible Small Block Gap! <br>"
-                + "Nothing on floor; <br> Trapdoor on ceiling";
+            
+    if (y < -63.875) {
+                document.getElementById("Row " + i.toString() + ", Collumn 5").innerHTML = "<u><br>Void! (1.17+)</u>";
+        } else if (y >= 0.125) {
+            if (yRoundedToPixel % 1 == 0 && (y-yRoundedToPixel) < 0.0125) {
+                document.getElementById("Row " + i.toString() + ", Collumn 5").innerHTML = "<b>Possible Small Block Gap! <br>"
+                + "Nothing on floor; <br> Trapdoor on ceiling</b>";
             } else if (yRoundedToPixel % 1 == 0 && (y-yRoundedToPixel) >= 0.0125 && (y-yRoundedToPixel) < 0.2) {
-                document.getElementById("Row " + i.toString() + ", Collumn 5").innerHTML = "Possible 2b Gap! <br>"
-                + "Nothing on floor; <br> Nothing on ceiling";
+                document.getElementById("Row " + i.toString() + ", Collumn 5").innerHTML = "<b>Possible 2b Gap! <br>"
+                + "Nothing on floor; <br> Nothing on ceiling</b>";
             } else if (yRoundedToPixel % 1 == 0.0625 && (y-yRoundedToPixel) < 0.1375) {
-                document.getElementById("Row " + i.toString() + ", Collumn 5").innerHTML = "Possible Small Block Gap! <br>"
-                + "Carpet or Lily Pad on floor; <br> Nothing on ceiling";
+                document.getElementById("Row " + i.toString() + ", Collumn 5").innerHTML = "<b>Possible Small Block Gap! <br>"
+                + "Carpet or Lily Pad on floor; <br> Nothing on ceiling</b>";
             } else if (yRoundedToPixel % 1 == 0.125 && (y-yRoundedToPixel) < 0.075) {
-                document.getElementById("Row " + i.toString() + ", Collumn 5").innerHTML = "Possible Small Block Gap! <br>"
-                + "Repeater on floor; <br> Nothing on ceiling";
+                document.getElementById("Row " + i.toString() + ", Collumn 5").innerHTML = "<b>Possible Small Block Gap! <br>"
+                + "Repeater on floor; <br> Nothing on ceiling</b>";
             } else if (yRoundedToPixel % 1 == 0.1875 && (y-yRoundedToPixel) < 0.0125) {
-                document.getElementById("Row " + i.toString() + ", Collumn 5").innerHTML = "Possible Small Block Gap! <br>"
-                + "Trapdoor on floor; <br> Nothing on ceiling";
+                document.getElementById("Row " + i.toString() + ", Collumn 5").innerHTML = "<b>Possible Small Block Gap! <br>"
+                + "Trapdoor on floor; <br> Nothing on ceiling</b>";
             } else if (yRoundedToPixel % 1 == 0.5 && (y-yRoundedToPixel) < 0.2) {
-                document.getElementById("Row " + i.toString() + ", Collumn 5").innerHTML = "Possible 2b Gap! <br>"
-                + "Slab on floor; <br> Slab on ceiling";
+                document.getElementById("Row " + i.toString() + ", Collumn 5").innerHTML = "<b>Possible 2b Gap! <br>"
+                + "Slab on floor; <br> Slab on ceiling</b>";
             } else if (yRoundedToPixel % 1 == 0.5625 && (y-yRoundedToPixel) < 0.1375) {
-                document.getElementById("Row " + i.toString() + ", Collumn 5").innerHTML = "Possible Small Block Gap! <br>"
-                + "Bed on floor; <br> Slab on ceiling";
+                document.getElementById("Row " + i.toString() + ", Collumn 5").innerHTML = "<b>Possible Small Block Gap! <br>"
+                + "Bed on floor; <br> Slab on ceiling</b>";
             } else if (yRoundedToPixel % 1 == 0.625 && (y-yRoundedToPixel) < 0.075) {
-                document.getElementById("Row " + i.toString() + ", Collumn 5").innerHTML = "Possible Small Block Gap! <br>"
-                + "6 Snow Layers on floor; <br> Slab on ceiling";
+                document.getElementById("Row " + i.toString() + ", Collumn 5").innerHTML = "<b>Possible Small Block Gap! <br>"
+                + "6 Snow Layers on floor; <br> Slab on ceiling</b>";
             } else if (yRoundedToPixel % 1 == 0.875 && (y-yRoundedToPixel) < 0.1375) {
-                document.getElementById("Row " + i.toString() + ", Collumn 5").innerHTML = "Possible Small Block Gap! <br>"
-                + "Soul Sand on floor; <br> Trapdoor on ceiling";
+                document.getElementById("Row " + i.toString() + ", Collumn 5").innerHTML = "<b>Possible Small Block Gap! <br>"
+                + "Soul Sand on floor; <br> Trapdoor on ceiling</b>";
             } else {
                 document.getElementById("Row " + i.toString() + ", Collumn 5").innerHTML = "";
             }
+        } else if (y < 0.125 && y >= -63.875) {
+            if (yRoundedToPixel % 1 == 0 && (y-yRoundedToPixel) < 0.0125) {
+                document.getElementById("Row " + i.toString() + ", Collumn 5").innerHTML = "<b>Possible Small Block Gap! <br>"
+                + "Nothing on floor; <br> Trapdoor on ceiling</b>";
+            } else if (yRoundedToPixel % 1 == 0 && (y-yRoundedToPixel) >= 0.0125 && (y-yRoundedToPixel) < 0.2) {
+                document.getElementById("Row " + i.toString() + ", Collumn 5").innerHTML = "<b>Possible 2b Gap! <br>"
+                + "Nothing on floor; <br> Nothing on ceiling</b>";
+            } else if (Math.abs(yRoundedToPixel) % 1 == 0.9375 && (y-yRoundedToPixel) < 0.1375) {
+                document.getElementById("Row " + i.toString() + ", Collumn 5").innerHTML = "<b>Possible Small Block Gap! <br>"
+                + "Carpet or Lily Pad on floor; <br> Nothing on ceiling</b>";
+            } else if (Math.abs(yRoundedToPixel) % 1 == 0.875 && (y-yRoundedToPixel) < 0.075) {
+                document.getElementById("Row " + i.toString() + ", Collumn 5").innerHTML = "<b>Possible Small Block Gap! <br>"
+                + "Repeater on floor; <br> Nothing on ceiling</b>";
+            } else if (Math.abs(yRoundedToPixel) % 1 == 0.8125 && (y-yRoundedToPixel) < 0.0125) {
+                document.getElementById("Row " + i.toString() + ", Collumn 5").innerHTML = "<b>Possible Small Block Gap! <br>"
+                + "Trapdoor on floor; <br> Nothing on ceiling</b>";
+            } else if (Math.abs(yRoundedToPixel) % 1 == 0.5 && (y-yRoundedToPixel) < 0.2) {
+                document.getElementById("Row " + i.toString() + ", Collumn 5").innerHTML = "<b>Possible 2b Gap! <br>"
+                + "Slab on floor; <br> Slab on ceiling</b>";
+            } else if (Math.abs(yRoundedToPixel) % 1 == 0.4375 && (y-yRoundedToPixel) < 0.1375) {
+                document.getElementById("Row " + i.toString() + ", Collumn 5").innerHTML = "<b>Possible Small Block Gap! <br>"
+                + "Bed on floor; <br> Slab on ceiling</b>";
+            } else if (Math.abs(yRoundedToPixel) % 1 == 0.375 && (y-yRoundedToPixel) < 0.075) {
+                document.getElementById("Row " + i.toString() + ", Collumn 5").innerHTML = "<b>Possible Small Block Gap! <br>"
+                + "6 Snow Layers on floor; <br> Slab on ceiling</b>";
+            } else if (Math.abs(yRoundedToPixel) % 1 == 0.125 && (y-yRoundedToPixel) < 0.1375) {
+                document.getElementById("Row " + i.toString() + ", Collumn 5").innerHTML = "<b>Possible Small Block Gap! <br>"
+                + "Soul Sand on floor; <br> Trapdoor on ceiling</b>";
+            } else {
+                document.getElementById("Row " + i.toString() + ", Collumn 5").innerHTML = "";
+            }
+                document.getElementById("Row " + i.toString() + ", Collumn 5").innerHTML += "<u><br>Void! (Before 1.17)</u>";
         }
-
+    }
 
         localStorage.setItem("yCoordInput", initialY.toString());
     }
+
+function removeTableData() {
+    for (i = parseFloat(tickCount.value) + 1; i <= 1000; i++) {
+            document.getElementById("Row " + i.toString() + ", Collumn 2").innerHTML = "";
+            document.getElementById("Row " + i.toString() + ", Collumn 3").innerHTML = "";
+            document.getElementById("Row " + i.toString() + ", Collumn 4").innerHTML = "";
+            document.getElementById("Row " + i.toString() + ", Collumn 5").innerHTML = "";
+    }
+}
 
 
 function getDate() {
@@ -276,12 +326,14 @@ function getDate() {
         timeCreated.innerHTML = "Time Created: " + month + " " + today.getDate() + ", " + today.getFullYear() + " at "
         + hours + ":" + minutes + ":" + seconds + "." + milliseconds + ".";
         localStorage.setItem("dateGapCreated", timeCreated.innerHTML);
+        localStorage.setItem("tickCount", tickCount.value.toString());
 }
 
+//creating the table
 
         var table = document.getElementById("tableOfAll");
 
-        for (i = 1; i<121; i++) {
+        for (i = 1; i<=1001; i++) {
             let tableRow = document.createElement("tr");
             for (j = 1; j<6; j++) {
                 let tableData = document.createElement("td");
@@ -293,25 +345,25 @@ function getDate() {
         }
         
         function scrollDown() {
-            window.scrollTo(0,8000);
+            window.scrollTo(0,1000000);
         }
 
         function scrollUp() {
-            window.scrollTo(0,0);
+            window.scrollTo(0,830);
         }
 
     
         function loadFunction() {
-            if (document.getElementById("yCoord").value == "" && typeof localStorage.getItem("yCoordInput") == "number") {
+            if (document.getElementById("yCoord").value == "" && typeof localStorage.getItem("yCoordInput") == "string") {
                 document.getElementById("yCoord").value = parseFloat(localStorage.getItem("yCoordInput"));
                 doMath();
-            } else if (isNaN(localStorage.getItem("yCoordInput")) == true) {
-                console.log("hello");
+                removeTableData();
             }
             timeCreated.innerHTML = localStorage.getItem("dateGapCreated");
             if (timeCreated.innerHTML == "") {
                 timeCreated.innerHTML = "Time Created: "
             }
+            tickCount.value = localStorage.getItem("tickCount");
         }
     </script>
 </body>
