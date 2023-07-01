@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Minecraft 1.8.9 Small Gap Finder</title>
+    <title>Minecraft Small Gap Finder</title>
     <style>
         body {
             background-color: lightgray;
@@ -363,7 +363,12 @@ function getDate() {
             if (timeCreated.innerHTML == "") {
                 timeCreated.innerHTML = "Time Created: "
             }
-            tickCount.value = localStorage.getItem("tickCount");
+            if (tickCount.value == "") {
+                tickCount.value = localStorage.getItem("tickCount");
+            } else {
+                tickCount.value = 160;
+            }
+            
         }
     </script>
 </body>
