@@ -131,7 +131,7 @@
                 alert("You can not possibly fall from this height unless you have been launched vertically upward by a slime block!")
             } else if (document.getElementById("yCoord").value > 262.5){
                 alert("Impossible!")  
-            } else if(document.getElementById("yCoord").value = parseFloat(localStorage.getItem("yCoordInput"))) {
+            } else if(document.getElementById("yCoord").value == parseFloat(localStorage.getItem("yCoordInput"))) {
                 alert("You already entered this!")
             } else {
                 doMath();
@@ -302,9 +302,11 @@ function getDate() {
 
     
         function loadFunction() {
-            if (document.getElementById("yCoord").value == "" && isNaN(localStorage.getItem("yCoordInput")) == false) {
+            if (document.getElementById("yCoord").value == "" && typeof localStorage.getItem("yCoordInput") == "number") {
                 document.getElementById("yCoord").value = parseFloat(localStorage.getItem("yCoordInput"));
                 doMath();
+            } else if (isNaN(localStorage.getItem("yCoordInput")) == true) {
+                console.log("hello");
             }
             timeCreated.innerHTML = localStorage.getItem("dateGapCreated");
             if (timeCreated.innerHTML == "") {
